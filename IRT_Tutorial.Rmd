@@ -1,0 +1,210 @@
+---
+title: "Item Response Theory Practice with R: a Tutorial"
+author: "Dr. Federico Ferrero"
+date: " "
+output: html_document
+---
+
+
+
+
+## Introduction
+
+IRT (Item Response Theory) consists of mathematical models that clarify the relationship between an unobservable trait (like ability or proficiency) and its observable manifestations (such as responses to test questions). Unlike Classical Test Theory (CTT), which focuses on aggregate scores, IRT analyzes individual item responses using probabilistic principles.
+
+
+| | Classical Test Theory | Modern Test Theory (IRT) |
+|- |----------|----------|
+| 1 | Everyone is asked a fixed number of items presented in the same order | Variable number of items, survey can be tailored to each person | 
+| 2 | Reliability increases as test lenght increases | Reliability can be equivalent or higher with fewer items (lower respondent burden) |
+| 3 | Difficult to compare results (scores) across different instruments | Item from different instruments can be linked within item banks |
+| 4 | Typically STAAR (State of Texas Assessments of Academic Readiness) | MAP (Measures of Academic Progress) |
+
+IRT models have several advantages over CTT models:
+
+* **Better Differentiation:** IRT scales are particularly effective at distinguishing between individuals at extreme ends of the proficiency spectrum. This means that the test can more accurately identify high and low performers, providing a more detailed assessment of individual abilities.
+* **Item Banks:** IRT-generated item banks allow for the development of shorter tests that still maintain high levels of validity and reliability. These item banks consist of questions that have been calibrated to measure the same underlying trait, making it possible to create multiple versions of a test or adapt tests to different contexts without sacrificing measurement precision.
+* **Computer Adaptive Testing (CAT):** CAT leverages IRT to tailor test items to an individual’s proficiency level. This approach enhances testing efficiency and engagement while reducing the overall length of the test. CAT dynamically selects questions based on a test-taker’s responses to previous items, aiming to determine an accurate score with the fewest number of questions possible. This method combines the brevity of a short form with the precision of a long form, ensuring that each test-taker receives a personalized and precise measurement of their ability.
+
+Within IRT, key concepts include:
+
+* **Item Discrimination:** How effectively an item distinguishes between individuals with different proficiency levels.
+* **Item Difficulty:** The proficiency level at which 50% of participants are expected to answer correctly.
+* **Guessing Probability:** Some models include the chance of guessing correctly, reflecting the likelihood of answering an item correctly by chance alone.
+
+
+This tutorial is based on Philip Masur's blog (2022, https://philippmasur.de/2022/05/13/how-to-run-irt-analyses-in-r/) and introduces three common IRT models: the 3PL, 2PL, and 1PL (Rasch) models. These models use different numbers of parameters to estimate proficiency from binary items (like test questions).
+
+## IRT Practice with R
+
+Let's code in R with simulated data...
+
+
+Clear the memory:
+```{r}
+rm(list=ls())
+```
+
+For data wrangling and visualization load tidyverse:
+```{r, message = FALSE}
+library(tidyverse)
+```
+
+'mirt' (multidimensional item response theory (Chalmers, 022) is a Very comprehensive package for IRT analyses:
+```{r,  warining = FALSE}
+library(mirt)
+```
+
+'ggmirt' is an extension for 'mirt' that was written by P. Masur to provide publication-ready plotting functions: 
+```{r}
+#install.packages("devtools")
+#library(devtools)
+#devtools::install_github("masurp/ggmirt")
+library(ggmirt)
+```
+
+The 'ggmirt' package offers a convenient function for generating simulated data used in IRT analyses. We can swiftly generate a dataset containing 800 observations and 10 items suitable for fitting models like 3PL, 2PL, and potentially 1PL.
+```{r}
+set.seed(102)
+d <- sim_irt(800, 10, discrimination = .25, seed = 102)
+head(d)
+```
+As we can see in the output above, each participant (each row) has responded to 10 binary items. Consider administering a test (such as MAP) to 800 students. A score of 1 indicates a correct answer for a specific item, while a score of 0 indicates an incorrect answer.
+
+Now, let's analyze the three parameters of IRT considering the Item Characteristic Curve (ICC). ICC is a graphical representation that illustrates how an item performs across different levels of the latent trait (θ). In the graph below, we juxtapose the ICCs of three different items to observe their behaviors.
+
+These parameters collectively provide insights into how each item behaves in relation to the latent trait being measured, helping to understand their effectiveness and characteristics within an IRT framework.
+
+* **Item Discrimination:** This parameter is reflected in the steepness of the curve. A steeper curve indicates higher item discrimination, meaning the item effectively distinguishes between individuals with different levels of the latent trait.
+
+* **Item Difficulty:** The item difficulty is indicated by the position along the θ-axis where the curve crosses the 50% probability mark (P = 0.5). Items positioned further to the left on the θ-axis are easier (answered correctly by lower levels of θ), while items to the right are more difficult (requiring higher levels of θ for a correct response).
+
+* **Guessing Parameter:** If included in the model, the guessing parameter is represented by the lower asymptote of the curve (P_min). It indicates the probability of a correct response when the respondent has no knowledge of the item. Higher guessing parameters mean the item is easier to guess correctly.
+
+
+
+```{r echo=FALSE, message = FALSE}
+unimodel <- 'F1 = 1-10'
+
+fit3PL <- mirt(data = d, 
+               model = unimodel,  # alternatively, we could also just specify model = 1 in this case
+               itemtype = "3PL", 
+               verbose = FALSE)
+# Plotting only individual items
+tracePlot(fit3PL, items = c(1:3), facet = FALSE, legend = TRUE) + scale_color_brewer(palette = "Set2")
+```
+
+## Three Models of IRT
+Depending on whether we focus on item discrimination, difficulty, and potential for guessing across different proficiency levels, we have three different models:
+
+* **3PL Model**: Provides detailed information on discrimination, difficulty, and guessing.
+* **2PL Model**: Focuses on discrimination and difficulty without considering guessing.
+* **1PL Model (Rasch)**: Assumes equal discrimination across items and does not model guessing.
+
+| Model                   | Discrimination                               | Difficulty                                      | Guessing Probability                           | Interpretation                                                                                       |
+|-------------------------|----------------------------------------------|-------------------------------------------------|-------------------------------------------------|------------------------------------------------------------------------------------------------------|
+| **3PL Model**           | The steepness of the curve (slope) indicates item discrimination. Higher discrimination items have steeper curves, meaning they differentiate well between individuals with higher and lower abilities. | The position on the proficiency axis (θ) where the curve crosses 50% probability (P = 0.5) represents item difficulty. Lower difficulty items are located further to the left on the θ axis. | The lower asymptote of the curve (P_min) indicates the guessing probability. Higher guessing probability items have a lower asymptote closer to 0. | A steep curve with an asymptote close to 0 indicates high item discrimination and low guessing, while the position where the curve crosses P = 0.5 denotes item difficulty. |
+| **2PL Model**           | Similar to the 3PL model, discrimination is indicated by the steepness of the curve. | The position where the curve crosses 50% probability (P = 0.5) represents item difficulty. | Unlike the 3PL model, the 2PL model assumes no guessing parameter (P_min = 0). | The 2PL model simplifies interpretation by focusing on discrimination and difficulty, without explicitly modeling guessing. |
+| **1PL Model (Rasch)**   | The 1PL model assumes equal discrimination across all items, so discrimination is not explicitly modeled. | The position on the θ axis where the curve crosses 50% probability (P = 0.5) represents item difficulty. | No guessing parameter is included in the Rasch model, so the curve approaches 0 as θ decreases. | The Rasch model focuses primarily on item difficulty, assuming all items have the same discrimination. |
+
+**Why choose one model over others?** The choice of the model depends on the specific goals of the assessment, the nature of the test items, and the level of detail required in the analysis.
+
+* **1PL Model (Rasch Model):**
+  * **Simplicity and Interpretability:** The Rasch model assumes equal discrimination across all items, simplifying interpretation by focusing solely on item difficulty. This makes it easier to communicate results to stakeholders.
+  * **Fairness and Consistency:** By assuming equal discrimination, the Rasch model ensures that assessments are fair and consistent, which is particularly important in educational testing.
+  * **Use Case:** Ideal for large-scale assessments, such as educational testing, where simplicity, fairness, and consistency are paramount.
+
+
+* **2PL Model:**
+  * **Differentiated Discrimination:** Includes both item difficulty and discrimination parameters, allowing for a nuanced analysis of how well items differentiate between varying proficiency levels.
+  * **Increased Flexibility:** Provides a flexible and detailed understanding of item function by incorporating item discrimination.
+  * **Use Case:** Suitable for assessments that require understanding varying item discrimination, such as psychological assessments or advanced educational testing.
+
+
+* **3PL Model:**
+  * **Comprehensive Analysis:** Includes discrimination, difficulty, and guessing parameters, offering the most detailed item analysis.
+  * **Inclusion of Guessing:** Accounts for the likelihood that test-takers may guess correctly, which is important in multiple-choice tests.
+  * **Use Case:** Best for tests where guessing is a concern, such as standardized multiple-choice exams and high-stakes testing.
+
+
+```{r}
+unimodel <- 'F1 = 1-10'
+
+fit3PL <- mirt(data = d, 
+               model = unimodel,  # alternatively, we could also just specify model = 1 in this case
+               itemtype = "3PL", 
+               verbose = FALSE)
+fit3PL
+```
+
+```{r}
+# Factor solution
+summary(fit3PL)
+```
+
+```{r}
+params3PL <- coef(fit3PL, IRTpars = TRUE, simplify = TRUE)
+round(params3PL$items, 2) # g = c = guessing parameter
+```
+
+```{r}
+M2(fit3PL)
+```
+
+```{r}
+itemfit(fit3PL)
+```
+
+```{r}
+itemfit(fit3PL, fit_stats = "infit") # typical for Rasch modeling
+```
+
+```{r}
+itemfitPlot(fit3PL)
+```
+
+```{r}
+head(personfit(fit3PL))
+```
+
+```{r}
+personfit(fit3PL) %>%
+  summarize(infit.outside = prop.table(table(z.infit > 1.96 | z.infit < -1.96)),
+            outfit.outside = prop.table(table(z.outfit > 1.96 | z.outfit < -1.96))) # lower row = non-fitting people
+
+
+personfitPlot(fit3PL)
+```
+
+```{r}
+library(cowplot)
+itempersonMap(fit3PL)
+```
+
+```{r}
+tracePlot(fit3PL)
+tracePlot(fit3PL, facet = F, legend = T) + scale_color_brewer(palette = "Set3")
+```
+
+```{r}
+# Plotting only individual items
+tracePlot(fit3PL,items = c(1:3), facet = F, legend = T) + scale_color_brewer(palette = "Set2")
+```
+
+
+
+
+
+
+## References
+
+* Baker, F. B., & Kim, S. H. (2004). Item response theory: Parameter estimation techniques. CRC press.
+
+* DeMars, C. (2010). Item response theory. Oxford University Press.
+
+* Gandek, B. (2015, May 20). Item Response Theory. PowerPoint presentation presented at Tufts Clinical and Translational Science Institute (CTSI), Boston, MA.
+
+* Masur, P. K. (2022, May 13). How to run IRT analyses in R. Retrieved July 17, 2024, from https://philippmasur.de/2022/05/13/how-to-run-irt-analyses-in-r/
+
+
+
