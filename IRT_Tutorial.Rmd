@@ -51,7 +51,7 @@ library(tidyverse)
 ```
 
 'mirt' (multidimensional item response theory (Chalmers, 022) is a Very comprehensive package for IRT analyses:
-```{r,  warining = FALSE}
+```{r, message = FALSE, warining = FALSE}
 library(mirt)
 ```
 
