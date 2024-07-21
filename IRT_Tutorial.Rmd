@@ -159,7 +159,7 @@ For data wrangling and visualization load tidyverse:
 library(tidyverse)
 ```
 
-'mirt' (multidimensional item response theory (Chalmers, 022) is a very comprehensive package for IRT analyses:
+'mirt' (multidimensional item response theory (Chalmers, 2012) is a very comprehensive package for IRT analyses:
 ```{r, message = FALSE, warining = FALSE}
 library(mirt)
 ```
@@ -267,6 +267,8 @@ tracePlot(fit3PL,items = c(1:3), facet = F, legend = T) + scale_color_brewer(pal
 ## References
 
 * Baker, F. B., & Kim, S. H. (2004). Item response theory: Parameter estimation techniques. CRC press.
+
+* Chalmers, R. P. (2012). mirt: A multidimensional item response theory package for the R environment. Journal of statistical Software, 48, 1-29.
 
 * DeMars, C. (2010). Item response theory. Oxford University Press.
 
