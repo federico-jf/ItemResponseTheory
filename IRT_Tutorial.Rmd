@@ -10,7 +10,8 @@ output: html_document
 
 ## Introduction
 
-IRT (Item Response Theory) consists of mathematical models that clarify the relationship between an unobservable trait (like ability or proficiency) and its observable manifestations (such as responses to test questions). Unlike Classical Test Theory (CTT), which focuses on aggregate scores, IRT analyzes individual item responses using probabilistic principles.
+**Item Response Theory*** (IRT) models illustrate the connection between the ability or trait (denoted by theta, θ) assessed by the instrument and an individual's item response (DeMars, 2010). The constructs measured by these items can range from academic skills or aptitude to attitudes or beliefs. Essentially, IRT employs mathematical models to explain the link between an unseen trait (such as ability or proficiency) and its visible indicators (like test question responses). In contrast to Classical Test Theory (CTT), which emphasizes total scores, IRT focuses on the analysis of individual item responses through probabilistic methods.
+
 
 
 | | Classical Test Theory | Modern Test Theory (IRT) |
@@ -26,11 +27,43 @@ IRT models have several advantages over CTT models:
 * **Item Banks:** IRT-generated item banks allow for the development of shorter tests that still maintain high levels of validity and reliability. These item banks consist of questions that have been calibrated to measure the same underlying trait, making it possible to create multiple versions of a test or adapt tests to different contexts without sacrificing measurement precision.
 * **Computer Adaptive Testing (CAT):** CAT leverages IRT to tailor test items to an individual’s proficiency level. This approach enhances testing efficiency and engagement while reducing the overall length of the test. CAT dynamically selects questions based on a test-taker’s responses to previous items, aiming to determine an accurate score with the fewest number of questions possible. This method combines the brevity of a short form with the precision of a long form, ensuring that each test-taker receives a personalized and precise measurement of their ability.
 
-Within IRT, key concepts include:
+## Parameters
+
+In IRT, three primary parameters are considered: discrimination, difficulty, and guessing.
 
 * **Item Discrimination:** How effectively an item distinguishes between individuals with different proficiency levels.
 * **Item Difficulty:** The proficiency level at which 50% of participants are expected to answer correctly.
 * **Guessing Probability:** Some models include the chance of guessing correctly, reflecting the likelihood of answering an item correctly by chance alone.
+
+## Item Characteristic Curve (ICC)
+
+In IRT, the **Item Characteristic Curve** (ICC) graphically represents the probability of a correct response to an item based on the examinee's ability level. The ICC provides a visual depiction of how item parameters—discrimination, difficulty, and guessing—affect performance.
+
+The x-axis of the ICC represents the ability level, often denoted by theta (θ). This axis ranges from lower ability levels on the left to higher ability levels on the right. The y-axis represents the probability of a correct response, ranging from 0 to 1. The curve itself shows the relationship between ability and the likelihood of answering the item correctly, illustrating how different items function across varying levels of examinee ability.
+
+```{r echo=FALSE, message = FALSE, warning=FALSE}
+rm(list=ls())
+library(tidyverse)
+library(mirt)
+library(ggmirt)
+set.seed(42)
+d <- sim_irt(800, 10, discrimination = .25, seed = 42)
+
+unimodel <- 'F1 = 1-10'
+
+fit3PL <- mirt(data = d, 
+               model = unimodel,  # alternatively, we could also just specify model = 1 in this case
+               itemtype = "3PL", 
+               verbose = FALSE)
+# Plotting only individual items
+tracePlot(fit3PL, items = 4, facet = FALSE, legend = TRUE) +
+  scale_color_brewer(palette = "Set2") +
+  theme(legend.position = "none") +
+  ggtitle(NULL) +
+  labs(x = "Ability Level (θ)", y = "Probability of Correct Response")
+```
+
+In IRT scoring, parameters such as item difficulty and discrimination are taken into account. More discriminating or reliable items are weighted more heavily, potentially making IRT scores more reliable than simple number-correct scores. Additionally, IRT scores can adjust for variations in test difficulty when different examinees take different tests.
 
 
 This tutorial is based on Philip Masur's blog (2022, https://philippmasur.de/2022/05/13/how-to-run-irt-analyses-in-r/) and introduces three common IRT models: the 3PL, 2PL, and 1PL (Rasch) models. These models use different numbers of parameters to estimate proficiency from binary items (like test questions).
@@ -65,8 +98,8 @@ library(ggmirt)
 
 The 'ggmirt' package offers a convenient function for generating simulated data used in IRT analyses. We can swiftly generate a dataset containing 800 observations and 10 items suitable for fitting models like 3PL, 2PL, and potentially 1PL.
 ```{r}
-set.seed(102)
-d <- sim_irt(800, 10, discrimination = .25, seed = 102)
+set.seed(42)
+d <- sim_irt(800, 10, discrimination = .25, seed = 42)
 head(d)
 ```
 As we can see in the output above, each participant (each row) has responded to 10 binary items. Consider administering a test (such as MAP) to 800 students. A score of 1 indicates a correct answer for a specific item, while a score of 0 indicates an incorrect answer.
@@ -91,7 +124,7 @@ fit3PL <- mirt(data = d,
                itemtype = "3PL", 
                verbose = FALSE)
 # Plotting only individual items
-tracePlot(fit3PL, items = c(1:3), facet = FALSE, legend = TRUE) + scale_color_brewer(palette = "Set2")
+tracePlot(fit3PL, items = c(1,8), facet = FALSE, legend = TRUE) + scale_color_brewer(palette = "Set2")
 ```
 
 ## Three Models of IRT
@@ -205,6 +238,3 @@ tracePlot(fit3PL,items = c(1:3), facet = F, legend = T) + scale_color_brewer(pal
 * Gandek, B. (2015, May 20). Item Response Theory. PowerPoint presentation presented at Tufts Clinical and Translational Science Institute (CTSI), Boston, MA.
 
 * Masur, P. K. (2022, May 13). How to run IRT analyses in R. Retrieved July 17, 2024, from https://philippmasur.de/2022/05/13/how-to-run-irt-analyses-in-r/
-
-
-
