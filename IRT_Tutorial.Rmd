@@ -242,38 +242,70 @@ itemfitPlot(fit3PL)
 Item V9 has a lower fit with an outfit value near 0.5, but this is not problematic according to Linacre’s guidelines.
 
 ## Person Fit
+We can evaluate each person's response pattern against the model. For example, if a high-ability individual (high theta) gets an easy item wrong, it indicates poor model fit. However, as long as only a few respondents show poor fit, it's acceptable. We mainly focus on infit and outfit statistics, considering the fit satisfactory if fewer than 5% of respondents have infit and outfit values outside the range of -1.96 to 1.96.
+
+The code below calculates person-fit statistics for the 3PL model (fit3PL) to assess how well each individual's responses align with the model's expectations. It then displays the first six rows of these statistics, providing an initial look at the person-fit results.
+
 ```{r}
 head(personfit(fit3PL))
 ```
 
-```{r}
+Now, the code below calculates and summarizes person-fit statistics for the 3PL model, identifying the proportion of respondents whose standardized infit and outfit statistics fall outside the acceptable range of -1.96 to 1.96. 
+
+```{r, message = FALSE, warning=FALSE}
 personfit(fit3PL) %>%
   summarize(infit.outside = prop.table(table(z.infit > 1.96 | z.infit < -1.96)),
-            outfit.outside = prop.table(table(z.outfit > 1.96 | z.outfit < -1.96))) # lower row = non-fitting people
-
-
-personfitPlot(fit3PL)
+            outfit.outside = prop.table(table(z.outfit > 1.96 | z.outfit < -1.96))) #lower row=non-fitting people
 ```
 
-```{r}
+Then, we can create a plot to visually inspect how well each respondent's response patterns align with the model.
+```{r, message = FALSE, warning=FALSE}
+personfitPlot(fit3PL)
+```
+When we run personfitPlot(fit3PL), it generates a plot showing each respondent's fit to the 3PL model based on infit and outfit statistics. Values close to 1 indicate good fit, while values outside the -1.96 to 1.96 range suggest poor fit. Dots within the acceptable range indicate consistent responses, while dots outside this range highlight unusual answer patterns, helping to identify respondents whose answers do not align well with their estimated abilities.
+
+## Other Plots
+### Item Person Map (Wright Map)
+An Item Person Map (Wright Map) visually aligns item difficulties with person abilities on the same scale. It shows where each test item falls in difficulty and how individual abilities are distributed. By comparing these, it helps identify if the test items are appropriately matched to the test-takers' abilities and highlights any gaps in item coverage.'
+
+The visualization below starts by plotting the distribution of latent ability within the sample. It then overlays the difficulty of each item on the same theta scale. By aligning these plots, we can assess how well the items address the range of latent abilities.
+
+```{r, message = FALSE, warning=FALSE}
 library(cowplot)
 itempersonMap(fit3PL)
 ```
 
-```{r}
+### Item Characteristics Curves
+As we saw before, item characteristic curves illustrate all three IRT parameters for each item. This visualization aids in understanding the specific features and behaviors of each item.
+
+Below is the code to view each ICC separately.
+```{r, message = FALSE, warning=FALSE}
 tracePlot(fit3PL)
-tracePlot(fit3PL, facet = F, legend = T) + scale_color_brewer(palette = "Set3")
 ```
 
-```{r}
+We can also juxtapose the ICCs to better compare the parameters.
+```{r, message = FALSE, warning=FALSE}
+tracePlot(fit3PL, facet = F, legend = T) + scale_color_brewer(palette = "Set1")
+```
+
+Finally, we can select which ICCs to compare by specifying the items of interest. For instance, in the example below, we compare items 1 through 3.
+```{r, message = FALSE, warning=FALSE}
 # Plotting only individual items
-tracePlot(fit3PL,items = c(1:3), facet = F, legend = T) + scale_color_brewer(palette = "Set2")
+tracePlot(fit3PL,items = c(1:3), facet = F, legend = T) + scale_color_brewer(palette = "Set1")
 ```
 
+### Item Information Curves
 
+Item Information Curves provide insight into how effectively each item estimates a test-taker's ability (theta). The "information" in this context refers to the item's capacity to accurately reflect differences in ability. Items with higher information values contribute more to precise score estimates, meaning they provide more detailed and reliable measurements of a test-taker's ability. By plotting these curves, we can assess which items offer the most valuable information for determining ability levels.
 
+```{r, message = FALSE, warning=FALSE}
+itemInfoPlot(fit3PL) + scale_color_brewer(palette = "Set1")
+```
 
-
+```{r, message = FALSE, warning=FALSE}
+itemInfoPlot(fit3PL, facet = T)
+```
+Here, it is evident that some items provide the most information at higher theta levels, while others are effective across the entire range of theta.
 
 ## References
 
