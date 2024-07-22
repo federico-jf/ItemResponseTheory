@@ -5,12 +5,12 @@ date: " "
 output: html_document
 ---
 
-
+***
 
 
 ## Introduction
 
-**Item Response Theory** (IRT) models illustrate the connection between the ability or trait (denoted by theta, θ) assessed by the instrument and an individual's item response (DeMars, 2010). The constructs measured by these items can range from academic skills or aptitude to attitudes or beliefs. Essentially, IRT employs mathematical models to explain the link between an unseen trait (such as ability or proficiency) and its visible indicators (like test question responses). In contrast to Classical Test Theory (CTT), which emphasizes total scores, IRT focuses on the analysis of individual item responses through probabilistic methods.
+**Item Response Theory** (**IRT**) models illustrate the connection between the ability or trait (denoted by theta, θ) assessed by the instrument and an individual's item response (DeMars, 2010). The constructs measured by these items can range from academic skills or aptitude to attitudes or beliefs. Essentially, IRT employs mathematical models to explain the link between an unseen trait (such as ability or proficiency) and its visible indicators (like test question responses). In contrast to Classical Test Theory (CTT), which emphasizes total scores, IRT focuses on the analysis of individual item responses through probabilistic methods.
 
 
 
@@ -19,7 +19,7 @@ output: html_document
 | 1 | Everyone is asked a fixed number of items presented in the same order | Variable number of items, survey can be tailored to each person | 
 | 2 | Reliability increases as test lenght increases | Reliability can be equivalent or higher with fewer items (lower respondent burden) |
 | 3 | Difficult to compare results (scores) across different instruments | Item from different instruments can be linked within item banks |
-| 4 | Typically STAAR (State of Texas Assessments of Academic Readiness) | MAP (Measures of Academic Progress) |
+| 4 | Typically *STAAR* (State of Texas Assessments of Academic Readiness) | *MA*P (Measures of Academic Progress) |
 
 IRT models have several advantages over CTT models:
 
@@ -38,7 +38,7 @@ In IRT, three primary parameters are considered: discrimination, difficulty, and
 
 ## Item Characteristic Curve (ICC)
 
-In IRT, the **Item Characteristic Curve** (ICC) graphically represents the probability of a correct response to an item based on the examinee's ability level. The ICC (see an example below) provides a visual depiction of how item parameters—discrimination, difficulty, and guessing—affect performance.
+In IRT, the **Item Characteristic Curve** (**ICC**) graphically represents the probability of a correct response to an item based on the examinee's ability level. The ICC (see an example below) provides a visual depiction of how item parameters—discrimination, difficulty, and guessing—affect performance.
 
 The x-axis of the ICC represents the ability level, often denoted by theta (θ). This axis ranges from lower ability levels on the left to higher ability levels on the right. The y-axis represents the probability of a correct response, ranging from 0 (incorrect answer) to 1 (correct answer). The curve itself shows the relationship between ability and the likelihood of answering the item correctly, illustrating how different items function across varying levels of examinee ability.
 
@@ -58,7 +58,7 @@ fit3PL <- mirt(data = d,
                verbose = FALSE)
 # Plotting only individual items
 tracePlot(fit3PL, items = 4, facet = FALSE, legend = TRUE) +
-  scale_color_brewer(palette = "Set2") +
+  scale_color_brewer(palette = "Set1") +
   theme(legend.position = "none") +
   ggtitle("Example of Item Characteristic Curve" ) +
   labs(x = "Ability Level (θ)", y = "Probability of Correct Response")
@@ -72,7 +72,7 @@ First, **item discrimination**. The graph below shows two items with different d
 ```{r echo=FALSE, message = FALSE, warning=FALSE}
 # Plotting only individual items
 tracePlot(fit3PL, items = c(9, 4), facet = FALSE, legend = TRUE) +
-  scale_color_brewer(palette = "Set2") +
+  scale_color_brewer(palette = "Set1") +
   ggtitle("Comparison of Two Items with Different Discrimination Parameters") +
   labs(x = "Ability Level (θ)", y = "Probability of Correct Response")
 
@@ -85,7 +85,7 @@ The graph below shows two items with different difficulty parameters. Item 2 is 
 ```{r echo=FALSE, message = FALSE, warning=FALSE}
 # Plotting only individual items
 tracePlot(fit3PL, items = c(9, 14), facet = FALSE, legend = TRUE) +
-  scale_color_brewer(palette = "Set2") +
+  scale_color_brewer(palette = "Set1") +
   ggtitle("Comparison of Two Items with Different Difficulty Parameters") +
   labs(x = "Ability Level (θ)", y = "Probability of Correct Response")
 ```
@@ -95,7 +95,7 @@ Third, **guessing probability** indicates the likelihood that an examinee with a
 ```{r echo=FALSE, message = FALSE, warning=FALSE}
 # Plotting only individual items
 tracePlot(fit3PL, items = c(10, 5), facet = FALSE, legend = TRUE) +
-  scale_color_brewer(palette = "Set2") +
+  scale_color_brewer(palette = "Set1") +
   ggtitle("Comparison of Two Items with Different Guessing Probability") +
   labs(x = "Ability Level (θ)", y = "Probability of Correct Response")
 ```
@@ -141,30 +141,28 @@ Depending on whether we focus on item discrimination, difficulty, and potential 
   * *Use Case:* Best for tests where guessing is a concern, such as standardized multiple-choice exams and high-stakes testing.
 
 
-## Using R for IRT
-Having introduced these basic notions on IRT, this tutorial is based on Philip Masur's blog (2022, https://philippmasur.de/2022/05/13/how-to-run-irt-analyses-in-r/) and introduces three common IRT models: the 3PL, 2PL, and 1PL (Rasch) models. These models use different numbers of parameters to estimate proficiency from binary items (though item responses can also be polytomous).
-
 ## IRT Practice with R
+Having introduced these basic notions on IRT, this tutorial reproduces code from Philip Masur's blog (2022, https://philippmasur.de/2022/05/13/how-to-run-irt-analyses-in-r/) and introduces three common IRT models: the 3PL, 2PL, and 1PL (Rasch) models.
 
 Let's code in R with simulated data...
 
 
-Clear the memory:
+Clear the memory.
 ```{r}
 rm(list=ls())
 ```
 
-For data wrangling and visualization load tidyverse:
+For data wrangling and visualization load tidyverse.
 ```{r, message = FALSE}
 library(tidyverse)
 ```
 
-'mirt' (multidimensional item response theory (Chalmers, 2012) is a very comprehensive package for IRT analyses:
+'mirt' (multidimensional item response theory (Chalmers, 2012) is a very comprehensive package for IRT analyses.
 ```{r, message = FALSE, warining = FALSE}
 library(mirt)
 ```
 
-'ggmirt' is an extension for 'mirt' that was written by P. Masur to provide publication-ready plotting functions: 
+'ggmirt' is an extension for 'mirt' that was written by P. Masur to provide publication-ready plotting functions. 
 ```{r}
 #install.packages("devtools")
 #library(devtools)
@@ -172,29 +170,21 @@ library(mirt)
 library(ggmirt)
 ```
 
-The 'ggmirt' package offers a convenient function for generating simulated data used in IRT analyses. We can swiftly generate a dataset containing 800 observations and 10 items suitable for fitting models like 3PL, 2PL, and potentially 1PL.
+The 'ggmirt' package provides a convenient function for generating simulated data for IRT analyses. It allows us to quickly create a dataset with 800 observations and 10 items, which can be used to fit models such as 3PL, 2PL, and potentially 1PL.
+The R code below sets a seed for reproducibility using set.seed(42), then simulates ITR data with 800 respondents and 10 items, each having a discrimination parameter of 0.25, by using d <- sim_irt(800, 10, discrimination = .25, seed = 42). Finally, head(d) displays the first six rows of the simulated dataset, allowing a preview of its structure and content.
+
 ```{r}
 set.seed(42)
-d <- sim_irt(800, 10, discrimination = .25, seed = 42)
+d <- sim_irt(500, 10, discrimination = .25, seed = 42)
 head(d)
 ```
-As we can see in the output above, each participant (each row) has responded to 10 binary items. Consider administering a test (such as MAP) to 800 students. A score of 1 indicates a correct answer for a specific item, while a score of 0 indicates an incorrect answer.
+As seen in the output above, each participant (represented by each row) has responded to 10 binary items. Imagine administering a test, such as the *MAP* test, to 500 students. A score of 1 indicates a correct answer for a specific item, while a score of 0 indicates an incorrect answer.
 
 
+## 3PL Model
+As described before, the 3PL model considers three parameters: item discrimination, item difficulty, and guessing probability. Consequently, the 2PL and 1PL models (discussed above) are special cases or constrained versions of the 3PL model.
 
-```{r echo=FALSE, message = FALSE}
-unimodel <- 'F1 = 1-10'
-
-fit3PL <- mirt(data = d, 
-               model = unimodel,  # alternatively, we could also just specify model = 1 in this case
-               itemtype = "3PL", 
-               verbose = FALSE)
-# Plotting only individual items
-tracePlot(fit3PL, items = c(1,8), facet = FALSE, legend = TRUE) + scale_color_brewer(palette = "Set2")
-```
-
-
-
+Now, the R code below fits a 3PL model to the dataset d. It defines a unidimensional model (unimodel <- 'F1 = 1-10') where all 10 items are associated with a single latent trait. The mirt function is then used to fit this 3PL model to the data, specifying the model structure, the item type as "3PL", and suppressing detailed output with verbose = FALSE. Finally, the code outputs the fitted 3PL model object (fit3PL), which contains the estimated parameters and relevant information about the model.
 ```{r}
 unimodel <- 'F1 = 1-10'
 
@@ -205,32 +195,53 @@ fit3PL <- mirt(data = d,
 fit3PL
 ```
 
+An IRT analysis is somewhat analogous to factor analysis in Classical Test Theory. Using the summary() function, we obtain a factor solution that includes factor loadings (F1) and communalities (h2). Communalities, which are the squared factor loadings, indicate the proportion of variance in each item explained by the latent trait. In this analysis, most items have substantial relationships with the latent trait, as evidenced by loadings exceeding 0.50.
 ```{r}
 # Factor solution
 summary(fit3PL)
 ```
 
+**But what about the ITR parameters (discrimination, difficulty, and guessing probability)?**
+The code below, coef(fit3PL, IRTpars = TRUE, simplify = TRUE) retrieves the item parameters, including discrimination, difficulty, and guessing probability, from the fit3PL model object. The round(params3PL$items, 2) function rounds these parameters to two decimal places for easier interpretation and readability.
+
 ```{r}
 params3PL <- coef(fit3PL, IRTpars = TRUE, simplify = TRUE)
 round(params3PL$items, 2) # g = c = guessing parameter
 ```
+The discrimination (a-parameters) values range from 0.84 to 1.80, indicating how effectively each item distinguishes between individuals with varying ability levels. Higher a-parameter values signify better differentiation and stronger relationships between the item and the latent trait. The difficulty (b-parameters) represent the theta value at which there is a 50% probability of a correct response. These parameters show that the items cover a broad range of the latent trait. The g-parameter denotes the probability of correctly guessing the answer.
 
+## Model fit
+The code below computes the M2 statistic for the fitted 3PL model stored in fit3PL. The M2 statistic is a measure of model fit, assessing how well the model fits the data by comparing observed and expected item response patterns. This statistic helps evaluate the adequacy of the model in representing the data.
 ```{r}
 M2(fit3PL)
 ```
 
+The low and non-significant M2 statistic indicates a good fit between the model and the data, supported by a very low RMSEA and CFI and TLI values close to 1. In IRT, however, we focus more on item and person-fit indices to evaluate how well each item and individual responses align with the model.
+
+## Item fit
+Let's proceed with assessing item fit. Below, the itemfit(fit3PL) function is used to evaluate the fit of individual items within the IRT model. It provides statistics that assess how well each item aligns with the overall model. This includes examining whether the responses to each item are consistent with the expected patterns based on the model parameters.
 ```{r}
 itemfit(fit3PL)
 ```
+By default, the output includes the S_X2 statistic by Orlando and Thissen (2000), along with the degrees of freedom, RMSEA, and p-values. For good item fit, the test results should be non-significant. In this case, only item V9 shows a poorer fit with the model.
+
+
+Advocates of the Rasch Model frequently use infit and outfit statistics for reporting. The itemfit(fit3PL, fit_stats = "infit") code calculates item fit statistics specifically using the "infit" measure for the 3PL model. "Infit" is a statistic commonly used in Rasch modeling to evaluate how well each item conforms to the expected response patterns based on the model. This helps assess the adequacy of each item's fit within the model, with a focus on the typical response patterns of respondents.
+
 
 ```{r}
 itemfit(fit3PL, fit_stats = "infit") # typical for Rasch modeling
 ```
+Roughly speaking, non-standardized infit values should be between 0.5 and 1.5 to be considered acceptable. Values outside this range might indicate issues with item fit. Additionally, the itemfitPlot() function in the ggmirt package can be used to visually inspect item fit statistics
 
-```{r}
+It will be easier to see them in a plot.
+```{r, message = FALSE, warning=FALSE}
 itemfitPlot(fit3PL)
 ```
 
+Item V9 has a lower fit with an outfit value near 0.5, but this is not problematic according to Linacre’s guidelines.
+
+## Person Fit
 ```{r}
 head(personfit(fit3PL))
 ```
