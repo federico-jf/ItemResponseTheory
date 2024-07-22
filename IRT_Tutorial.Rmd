@@ -14,7 +14,7 @@ output: html_document
 
 
 
-| | Classical Test Theory | Modern Test Theory (IRT) |
+| | Classical Test Theory (CTT) | Modern Test Theory (IRT) |
 |- |----------|----------|
 | 1 | Everyone is asked a fixed number of items presented in the same order | Variable number of items, survey can be tailored to each person | 
 | 2 | Reliability increases as test lenght increases | Reliability can be equivalent or higher with fewer items (lower respondent burden) |
@@ -142,10 +142,7 @@ Depending on whether we focus on item discrimination, difficulty, and potential 
 
 
 ## IRT Practice with R
-Having introduced these basic notions on IRT, this tutorial reproduces code from Philip Masur's blog (2022, https://philippmasur.de/2022/05/13/how-to-run-irt-analyses-in-r/) and introduces three common IRT models: the 3PL, 2PL, and 1PL (Rasch) models.
-
-Let's code in R with simulated data...
-
+Having introduced these basic notions of IRT, this tutorial replicates code from Philip Masur's blog (2022, https://philippmasur.de/2022/05/13/how-to-run-irt-analyses-in-r/) to analyze the 3PL model. Let's proceed with coding in R using simulated data.
 
 Clear the memory.
 ```{r}
@@ -262,6 +259,7 @@ Then, we can create a plot to visually inspect how well each respondent's respon
 ```{r, message = FALSE, warning=FALSE}
 personfitPlot(fit3PL)
 ```
+
 When we run personfitPlot(fit3PL), it generates a plot showing each respondent's fit to the 3PL model based on infit and outfit statistics. Values close to 1 indicate good fit, while values outside the -1.96 to 1.96 range suggest poor fit. Dots within the acceptable range indicate consistent responses, while dots outside this range highlight unusual answer patterns, helping to identify respondents whose answers do not align well with their estimated abilities.
 
 ## Other Plots
@@ -305,6 +303,7 @@ itemInfoPlot(fit3PL) + scale_color_brewer(palette = "Set1")
 ```{r, message = FALSE, warning=FALSE}
 itemInfoPlot(fit3PL, facet = T)
 ```
+
 Here, it is evident that some items provide the most information at higher theta levels, while others are effective across the entire range of theta.
 
 ## References
