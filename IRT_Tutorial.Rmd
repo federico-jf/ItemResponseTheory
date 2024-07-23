@@ -1,7 +1,8 @@
 ---
 title: "Item Response Theory Practice with R: a Tutorial"
 author: "Dr. Federico Ferrero"
-date: " "
+
+date: " *July 2024* "
 output: html_document
 ---
 
@@ -167,8 +168,8 @@ library(mirt)
 library(ggmirt)
 ```
 
-The 'ggmirt' package provides a convenient function for generating simulated data for IRT analyses. It allows us to quickly create a dataset with 800 observations and 10 items, which can be used to fit models such as 3PL, 2PL, and potentially 1PL.
-The R code below sets a seed for reproducibility using set.seed(42), then simulates ITR data with 800 respondents and 10 items, each having a discrimination parameter of 0.25, by using d <- sim_irt(800, 10, discrimination = .25, seed = 42). Finally, head(d) displays the first six rows of the simulated dataset, allowing a preview of its structure and content.
+The 'ggmirt' package provides a convenient function for generating simulated data for IRT analyses. It allows us to quickly create a dataset with 500 observations and 10 items, which can be used to fit models such as 3PL, 2PL, and potentially 1PL.
+The R code below sets a seed for reproducibility using set.seed(42), then simulates ITR data with 500 respondents and 10 items, each having a discrimination parameter of 0.25, by using d <- sim_irt(800, 10, discrimination = .25, seed = 42). Finally, head(d) displays the first six rows of the simulated dataset, allowing a preview of its structure and content.
 
 ```{r}
 set.seed(42)
@@ -198,7 +199,7 @@ An IRT analysis is somewhat analogous to factor analysis in Classical Test Theor
 summary(fit3PL)
 ```
 
-**But what about the ITR parameters (discrimination, difficulty, and guessing probability)?**
+**But what about the IRT parameters (discrimination, difficulty, and guessing probability)?**
 The code below, coef(fit3PL, IRTpars = TRUE, simplify = TRUE) retrieves the item parameters, including discrimination, difficulty, and guessing probability, from the fit3PL model object. The round(params3PL$items, 2) function rounds these parameters to two decimal places for easier interpretation and readability.
 
 ```{r}
