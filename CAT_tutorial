@@ -2,12 +2,12 @@
 
 rm(list=ls())
 
-
-
 # Install and load the catR package
 # install.packages("catR")
 # packageVersion("catR")
 
+# Install and load the catR package
+install.packages("catR")
 library(catR)
 
 # Generate a bank of 100 items with random parameters
@@ -51,12 +51,12 @@ while (length(selected_items) < stop_criteria$nmax && se > stop_criteria$se) {
   item_bank_copy <- item_bank_copy[-next_item$item, ]
   
   # Estimate the new theta
-  current_theta <- eapEst(selected_items, responses, item_par = item_bank, model = "3PL")
+  current_theta <- eapEst(item_bank[selected_items, ], responses)
   print("Theta estimated:")
   print(current_theta)
   
   # Calculate the standard error
-  se <- semTheta(selected_items, responses, item_bank, current_theta, model = NULL)
+  se <- semTheta(current_theta, item_bank[selected_items, ], responses)
   print(paste("Selected items:", length(selected_items), "Current Theta:", current_theta, "SE:", se))
 }
 
