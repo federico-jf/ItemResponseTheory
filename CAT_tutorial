@@ -1,5 +1,3 @@
-# Federico Ferrero
-
 rm(list=ls())
 
 # Install and load the catR package
@@ -7,7 +5,7 @@ rm(list=ls())
 # packageVersion("catR")
 
 # Install and load the catR package
-install.packages("catR")
+#install.packages("catR")
 library(catR)
 
 # Generate a bank of 100 items with random parameters
@@ -67,3 +65,127 @@ list(
   responses = responses,
   standard_error = se
 )
+
+
+
+
+
+##########
+
+# Clear the workspace
+rm(list=ls())
+
+# Install and load the catR package
+# install.packages("catR")
+# packageVersion("catR")
+#install.packages("catR")
+library(catR)
+
+# Generate a bank of 100 items with random parameters
+set.seed(123)
+item_bank <- genDichoMatrix(100, model = "3PL")
+print("Item bank generated")
+
+# Initial theta estimate
+init_theta <- 0
+
+# Stopping rules: stop after 20 items or when the standard error is below 0.3
+stop_criteria <- list(nmax = 20, se = 0.3)
+
+# Simulate a test taker with a true ability level of 0.5
+true_theta <- 0.5
+
+# Initialize variables
+current_theta <- init_theta
+responses <- c()
+selected_items <- c()
+se <- Inf
+item_bank_copy <- item_bank
+theta_history <- c(current_theta)
+se_history <- c()
+
+# Run the CAT process
+while (length(selected_items) < stop_criteria$nmax && se > stop_criteria$se) {
+  # Select the next item
+  next_item <- nextItem(item_bank_copy, theta = current_theta, criterion = "MFI")
+  print("Next item selected:")
+  print(next_item)
+  
+  # Simulate the response
+  response <- genPattern(true_theta, item_bank_copy[next_item$item, ])
+  print("Response simulated:")
+  print(response)
+  
+  # Update responses and selected items
+  responses <- c(responses, response)
+  selected_items <- c(selected_items, next_item$item)
+  
+  # Remove the selected item from the item bank
+  item_bank_copy <- item_bank_copy[-next_item$item, ]
+  
+  # Estimate the new theta
+  current_theta <- eapEst(item_bank[selected_items, ], responses)
+  theta_history <- c(theta_history, current_theta)
+  print("Theta estimated:")
+  print(current_theta)
+  
+  # Calculate the standard error
+  se <- semTheta(current_theta, item_bank[selected_items, ], responses)
+  se_history <- c(se_history, se)
+  print(paste("Selected items:", length(selected_items), "Current Theta:", current_theta, "SE:", se))
+}
+
+# Display the results
+results <- list(
+  estimated_theta = current_theta,
+  selected_items = selected_items,
+  responses = responses,
+  standard_error = se
+)
+print(results)
+
+# Visualization
+library(ggplot2)
+
+# Plot the Estimated Theta over the Test Items
+df_theta <- data.frame(
+  Item = 0:length(selected_items),
+  Theta = theta_history
+)
+ggplot(df_theta, aes(x = Item, y = Theta)) +
+  geom_line() +
+  geom_point() +
+  labs(title = "Estimated Theta Over the Test Items",
+       x = "Number of Items",
+       y = "Estimated Theta")
+
+# Plot the Standard Error over the Test Items
+df_se <- data.frame(
+  Item = 1:length(se_history),
+  SE = se_history
+)
+ggplot(df_se, aes(x = Item, y = SE)) +
+  geom_line() +
+  geom_point() +
+  labs(title = "Standard Error Over the Test Items",
+       x = "Number of Items",
+       y = "Standard Error")
+
+# Item Characteristic Curves (ICCs)
+plotICC <- function(item_params) {
+  theta_vals <- seq(-3, 3, by = 0.1)
+  prob_correct <- apply(item_params, 1, function(params) {
+    P <- params[3] + (1 - params[3]) / (1 + exp(-1.7 * (theta_vals - params[1])))
+    P
+  })
+  
+  matplot(theta_vals, prob_correct, type = "l", col = 1:nrow(item_params),
+          lty = 1, xlab = "Theta", ylab = "Probability of Correct Response",
+          main = "Item Characteristic Curves")
+  legend("bottomright", legend = paste("Item", 1:nrow(item_params)), col = 1:nrow(item_params), lty = 1)
+}
+
+# Plot ICCs for the first 5 selected items
+if (length(selected_items) > 0) {
+  plotICC(item_bank[selected_items[1:min(5, length(selected_items))], ])
+}
