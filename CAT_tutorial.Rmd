@@ -1,0 +1,174 @@
+---
+title: " Computerized Adaptive Testing (CAT): a Tutorial"
+author: "Federico Ferrero"
+date: "August, 2024"
+output: html_document
+---
+
+--------------
+## Introduction
+**Computerized Adaptive Testing** (**CAT**) is a method of assessment that dynamically adjusts the difficulty of test items based on the test-taker's ability level. It is based on Item Response Theory (IRT) and involves the following key features:
+
+* **Adaptive Item Selection and Tailored Testing Experience:**  In CAT, each question is selected based on the test-taker's previous responses. If a participant answers a question correctly, the next question will be more challenging, and if they answer incorrectly, the next question will be easier. This real-time adjustment means that questions are tailored to the participant's current ability level, allowing the test to be shorter and more focused. Participants do not need to respond to the entire questionnaire, as the test adapts to provide the most appropriate questions to accurately assess their ability.
+
+* **Efficiency:** Since CAT focuses on providing questions that are neither too easy nor too difficult for the test-taker, it often results in shorter tests without compromising the accuracy of the assessment.
+
+* **Item Pool and IRT:** A large and diverse set of questions (item pool) is pre-calibrated based on their difficulty, discrimination, and guessing parameters using Item Response Theory (IRT). IRT models the probability of a correct response to a question based on the individual's ability level and the properties of the item. In CAT, these calibrated items are used to dynamically select the most appropriate questions for each test-taker, ensuring that the difficulty level matches their ability. This relationship between CAT and IRT allows for more precise and individualized assessments by leveraging the statistical properties of the items in the pool.
+
+* **Stopping Criteria:** The test can end based on predefined criteria, such as a maximum number of questions, a minimum standard error of measurement, or a desired confidence level in the ability estimate.
+
+## Using catR and ggplot2 ##
+
+For the purposes of this simulation, we will use the **catR** package for the simulation and **ggplot2** for visualizations.
+The **catR** package in R was developed by David Magis and provides tools for generating, administering, and scoring computerized adaptive tests (CAT). It allows users to:
+
+* Generate item parameters and item banks.
+* Simulate responses to items based on the test-taker's ability.
+* Select items adaptively based on various criteria.
+* Estimate the test-taker's ability using different methods.
+
+```{r}
+# Clear the workspace
+rm(list=ls())
+
+# Install and load the catR package
+# install.packages("catR")
+library(catR)
+packageVersion("catR")
+```
+The catR library version 3.17 in R facilitates Computerized Adaptive Testing (CAT) using Item Response Theory (IRT) models. It supports various item selection algorithms like Maximum Fisher Information (MFI) and provides ability estimation methods such as Maximum Likelihood Estimation (MLE), making it ideal for adaptive testing simulations and psychometric research.
+
+Now... let's simulate test data. The R code below generates a bank of 100 items for a 3-Parameter Logistic (3PL) model using random parameters, prints a confirmation message, and displays the first 5 rows of the item bank. 
+```{r}
+# Generate a bank of 100 items with random parameters in a 3PL model
+set.seed(123)
+item_bank <- genDichoMatrix(100, model = "3PL")
+print("Item bank generated")
+head(item_bank, 5)  # Show only the first 5 rows
+```
+This output shows the first 5 items from a 3-Parameter Logistic (3PL) model item bank. Each row represents an item, with columns for ***a*** (discrimination), ***b*** (difficulty), ***c*** (guessing), and ***d*** (a constant set to 1 for the 3PL model). The ***a*** parameter reflects how well the item discriminates between ability levels, ***b*** indicates the difficulty, and ***c*** shows the probability of guessing the correct answer.
+
+Now, it's time to set up for simulating a CAT with stopping criteria. The code below sets up the parameters and variables needed to simulate a computerized adaptive test. It starts by defining an initial ability estimate (init_theta) of 0. It establishes stopping criteria for the test: either after 20 items have been administered or if the standard error (se) falls below 0.3. It also simulates a test taker with a true ability level (true_theta) of 0.5. The code then initializes variables to track the current ability estimate (current_theta), stores responses and selected items in empty vectors, sets the initial standard error (se) to infinity, copies the item bank (item_bank_copy), and prepares vectors to record the history of ability estimates (theta_history) and standard errors (se_history).
+```{r}
+# Initial theta estimate
+init_theta <- 0
+
+# Stopping rules: stop after 20 items or when the standard error is below 0.3
+stop_criteria <- list(nmax = 20, se = 0.3)
+
+# Simulate a test taker with a true ability level of 0.5
+true_theta <- 0.5
+
+# Initialize variables
+current_theta <- init_theta
+responses <- c()
+selected_items <- c()
+se <- Inf
+item_bank_copy <- item_bank
+theta_history <- c(current_theta)
+se_history <- c()
+```
+
+And, finally, set up an empty data frame named results_df to store information about each test iteration, including the item selected, the response, estimated ability, and standard error. It ensures that text data is treated as text, not factors.
+```{r}
+# Create a data frame to store results
+results_df <- data.frame(
+  Iteration = integer(),
+  Selected_Item = integer(),
+  Response = integer(),
+  Estimated_Theta = numeric(),
+  Standard_Error = numeric(),
+  stringsAsFactors = FALSE)
+```
+
+# Run the CAT process
+Basically, we can now run a simulation of a computerized adaptive test. The code below starts by setting up an iteration counter and a loop that continues until either 20 items are selected or the standard error falls below 0.3. In each loop iteration, it selects the next test item based on the current ability estimate, simulates a response, updates the lists of responses and selected items, removes the chosen item from the pool, and recalculates the ability estimate and standard error. It then records all these details in a data frame and prints the results at the end.
+
+Having said that, we can focus in the step-by-step explanation of the code:
+
+**Initialize Iteration:** Sets the iteration counter to 0.
+```{r}
+iteration <- 0
+```
+
+**Start While Loop:** Begins a loop that continues as long as fewer than 20 items are selected and the standard error is above 0.3. Increments the iteration counter by 1.
+
+  + **Select Next Item:** Chooses the next item from the item bank based on the current ability estimate--1 using the Maximum Fisher Information (MFI) criterion, then prints the selected item.The Fisher Maximum Information (FMI) method selects test items that provide the most valuable information about a test-taker’s ability at their current level. It aims to choose items that maximize the precision of the ability estimate, making the test more efficient and accurate by focusing on questions that give the most insight into the test-taker’s performance.
+  + **Simulate Response:** Simulates the test taker’s response to the selected item based on their true ability level, then prints the simulated response.
+  + **Update Responses and Selected Items:** Adds the simulated response to the responses vector and the selected item to the selected_items vector.
+  + **Remove Selected Item:** Removes the selected item from the item bank copy to prevent it from being selected again.
+  + **Estimate New Theta:** Updates the ability estimate (current_theta) using the Expected A Posteriori (EAP) method based on selected items and responses, then prints the new estimate.
+  + **Calculate Standard Error:** Calculates the standard error of the ability estimate, updates the standard error history, and prints the number of selected items, current ability estimate, and standard error.
+  + **Record Results:** Appends the current iteration’s results to the results_df data frame.
+
+```{r results='hide'}
+while (length(selected_items) < stop_criteria$nmax && se > stop_criteria$se) {
+  iteration <- iteration + 1
+  
+  # Select the next item
+  next_item <- nextItem(item_bank_copy, theta = current_theta, criterion = "MFI")
+  print("Next item selected:")
+  print(next_item)
+  
+  # Simulate the response
+  response <- genPattern(true_theta, item_bank_copy[next_item$item, ])
+  print("Response simulated:")
+  print(response)
+  
+  # Update responses and selected items
+  responses <- c(responses, response)
+  selected_items <- c(selected_items, next_item$item)
+  
+  # Remove the selected item from the item bank
+  item_bank_copy <- item_bank_copy[-next_item$item, ]
+  
+  # Estimate the new theta
+  current_theta <- eapEst(item_bank[selected_items, ], responses)
+  theta_history <- c(theta_history, current_theta)
+  print("Theta estimated:")
+  print(current_theta)
+  
+  # Calculate the standard error
+  se <- semTheta(current_theta, item_bank[selected_items, ], responses)
+  se_history <- c(se_history, se)
+  print(paste("Selected items:", length(selected_items), "Current Theta:", current_theta, "SE:", se))
+  
+  # Record the results in the data frame
+  results_df <- rbind(results_df, data.frame(
+    Iteration = iteration,
+    Selected_Item = next_item$item,
+    Response = response,
+    Estimated_Theta = current_theta,
+    Standard_Error = se,
+    stringsAsFactors = FALSE
+  ))
+}
+```
+
+Let's display the results showing all recorded test iterations.
+```{r}
+# Display the results
+print(results_df)
+```
+In Computerized Adaptive Testing (CAT), the test adjusts to how well a test taker is performing. Here’s how it works with the results from our example:
+
+Starting Point: The test starts by selecting an item based on the test taker’s estimated ability level. In our example, the first item chosen was Item 60.
+
+Item Selection: After the test taker answers each question, the system uses their responses to estimate their ability. For instance, the test taker first answered Item 60, and their ability (Theta) was estimated at 0.4569.
+
+Updating Estimates: The system then selects the next item that will best help determine the test taker's ability. For example, after answering Item 60, the next item chosen was Item 70, and the estimated ability increased to 0.7271.
+
+Refinement: As more items are answered, the system continuously updates the estimated ability based on the responses. The process involves selecting items that provide the most information about the test taker's ability. For example, after answering Item 70, the system selected Item 47, and the estimated ability was updated to 1.0316.
+
+Adaptive Nature: The test adapts in real-time, choosing questions that are neither too easy nor too hard, but just right to gauge the test taker’s ability as accurately as possible. The final items in the list, like Item 68, were selected based on the updated ability estimates and their ability to provide useful information.
+
+In summary, CAT uses each response to select the next question, aiming to provide a precise measure of the test taker’s ability by choosing questions that best match their performance level.
+
+
+
+##########
+#
+
+## References ##
+
+Magis, D. (n.d.). catR: Computerized adaptive testing using item response theory [R package]. Retrieved from https://CRAN.R-project.org/package=catR
