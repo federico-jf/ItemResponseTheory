@@ -1,6 +1,6 @@
 ---
 title: " Computerized Adaptive Testing (CAT): a Tutorial"
-author: "Federico Ferrero"
+author: "Dr. Federico Ferrero"
 date: "August, 2024"
 output: html_document
 ---
@@ -97,7 +97,7 @@ iteration <- 0
   + **Simulate Response:** Simulates the test taker’s response to the selected item based on their true ability level, then prints the simulated response.
   + **Update Responses and Selected Items:** Adds the simulated response to the responses vector and the selected item to the selected_items vector.
   + **Remove Selected Item:** Removes the selected item from the item bank copy to prevent it from being selected again.
-  + **Estimate New Theta:** Updates the ability estimate (current_theta) using the Expected A Posteriori (EAP) method based on selected items and responses, then prints the new estimate.
+  + **Estimate New Theta:** Updates the ability estimate (current_theta) using the Expected A Posteriori (EAP) method based on selected items and responses, then prints the new estimate. The EAP method updates the test taker’s ability estimate (current_theta) using their responses and prior knowledge. It combines prior assumptions with observed data to calculate the most likely ability level, ensuring the test adapts accurately to the test taker's performance.
   + **Calculate Standard Error:** Calculates the standard error of the ability estimate, updates the standard error history, and prints the number of selected items, current ability estimate, and standard error.
   + **Record Results:** Appends the current iteration’s results to the results_df data frame.
 
@@ -161,7 +161,7 @@ In Computerized Adaptive Testing (CAT), the test adjusts to the test taker's abi
 
 + **Updating Estimates:** The system continually updates the test taker’s ability with each new response, selecting items that best determine their ability. For example:
 
-    - After Item 70, the next item, Item 47, was chosen, and the ability estimate was updated to 0.2013 after a wrong answer.
+    - After Item 70, the next item, Item 47, was chosen, and the ability estimate was updated to 0.2013 after a wrong answer (Response = 0).
     - This was followed by Item 75, and the ability estimate was adjusted to 0.3174 after a correct response.
 
 + **Refinement:** The test adapts by selecting questions that provide the most information about the test taker’s ability. For example:
@@ -176,7 +176,56 @@ In Computerized Adaptive Testing (CAT), the test adjusts to the test taker's abi
 
 Summary: CAT uses each response to select the next item, adapting in real-time to provide a precise measure of the test taker’s ability by choosing questions that best match their performance level.
 
+## Visualization ##
 
+```{r}
+
+# Visualization
+library(ggplot2)
+
+# Plot the Estimated Theta over the Test Items
+df_theta <- data.frame(
+  Item = 0:length(selected_items),
+  Theta = theta_history
+)
+ggplot(df_theta, aes(x = Item, y = Theta)) +
+  geom_line() +
+  geom_point() +
+  labs(title = "Estimated Theta Over the Test Items",
+       x = "Number of Items",
+       y = "Estimated Theta")
+
+# Plot the Standard Error over the Test Items
+df_se <- data.frame(
+  Item = 1:length(se_history),
+  SE = se_history
+)
+ggplot(df_se, aes(x = Item, y = SE)) +
+  geom_line() +
+  geom_point() +
+  labs(title = "Standard Error Over the Test Items",
+       x = "Number of Items",
+       y = "Standard Error")
+
+# Item Characteristic Curves (ICCs)
+plotICC <- function(item_params) {
+  theta_vals <- seq(-3, 3, by = 0.1)
+  prob_correct <- apply(item_params, 1, function(params) {
+    P <- params[3] + (1 - params[3]) / (1 + exp(-1.7 * (theta_vals - params[1])))
+    P
+  })
+  
+  matplot(theta_vals, prob_correct, type = "l", col = 1:nrow(item_params),
+          lty = 1, xlab = "Theta", ylab = "Probability of Correct Response",
+          main = "Item Characteristic Curves")
+  legend("bottomright", legend = paste("Item", 1:nrow(item_params)), col = 1:nrow(item_params), lty = 1)
+}
+
+# Plot ICCs for the first 5 selected items
+if (length(selected_items) > 0) {
+  plotICC(item_bank[selected_items[1:min(5, length(selected_items))], ])
+}
+```
 
 ## References ##
 
