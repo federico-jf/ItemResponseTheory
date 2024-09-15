@@ -143,31 +143,40 @@ while (length(selected_items) < stop_criteria$nmax && se > stop_criteria$se) {
     stringsAsFactors = FALSE
   ))
 }
-```
+```  
 
 Let's display the results showing all recorded test iterations.
 ```{r}
 # Display the results
 print(results_df)
 ```
-In Computerized Adaptive Testing (CAT), the test adjusts to how well a test taker is performing. Here’s how it works with the results from our example:
+In Computerized Adaptive Testing (CAT), the test adjusts to the test taker's ability level based on their responses. Here’s how it works using the results from our example:
 
-Starting Point: The test starts by selecting an item based on the test taker’s estimated ability level. In our example, the first item chosen was Item 60.
++ **Starting Point:** The test begins with an item chosen to estimate the test taker's ability. In our example, the first item selected was Item 60.
 
-Item Selection: After the test taker answers each question, the system uses their responses to estimate their ability. For instance, the test taker first answered Item 60, and their ability (Theta) was estimated at 0.4569.
++ **Item Selection and Ability Estimation:** After each response, the system updates the estimate of the test taker's ability. For instance:
 
-Updating Estimates: The system then selects the next item that will best help determine the test taker's ability. For example, after answering Item 60, the next item chosen was Item 70, and the estimated ability increased to 0.7271.
+    - After answering Item 60 correctly (Respone = 1 in the output), the test taker’s ability (Theta) was estimated at 0.4569.
+    - The next item, Item 70, was selected based on this estimate, and the ability was updated to 0.7271 after answering it correctly.
 
-Refinement: As more items are answered, the system continuously updates the estimated ability based on the responses. The process involves selecting items that provide the most information about the test taker's ability. For example, after answering Item 70, the system selected Item 47, and the estimated ability was updated to 1.0316.
++ **Updating Estimates:** The system continually updates the test taker’s ability with each new response, selecting items that best determine their ability. For example:
 
-Adaptive Nature: The test adapts in real-time, choosing questions that are neither too easy nor too hard, but just right to gauge the test taker’s ability as accurately as possible. The final items in the list, like Item 68, were selected based on the updated ability estimates and their ability to provide useful information.
+    - After Item 70, the next item, Item 47, was chosen, and the ability estimate was updated to 0.2013 after a wrong answer.
+    - This was followed by Item 75, and the ability estimate was adjusted to 0.3174 after a correct response.
 
-In summary, CAT uses each response to select the next question, aiming to provide a precise measure of the test taker’s ability by choosing questions that best match their performance level.
++ **Refinement:** The test adapts by selecting questions that provide the most information about the test taker’s ability. For example:
+
+    - As more items were answered, such as Item 61 (wrong) and Item 63 (correct), the ability estimate was refined to 0.5881.
+    - The final items like Item 68 were selected based on updated ability estimates to provide a precise measure of the test taker’s ability.
+
++ **Adaptive Nature:** The test dynamically adjusts to the test taker’s ability, selecting questions that are appropriately challenging. The final estimates are based on the entire set of responses, aiming to gauge the test taker’s ability as accurately as possible.
+
++ **Stopping Rule:** The test continues as long as fewer than 20 items are selected and the standard error is above 0.3. Once the stopping conditions are met—either reaching 20 items or achieving a standard error below 0.3—the test concludes.
 
 
+Summary: CAT uses each response to select the next item, adapting in real-time to provide a precise measure of the test taker’s ability by choosing questions that best match their performance level.
 
-##########
-#
+
 
 ## References ##
 
