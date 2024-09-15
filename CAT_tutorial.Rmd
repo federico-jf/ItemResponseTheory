@@ -1,5 +1,5 @@
 ---
-title: " Computerized Adaptive Testing (CAT): a Tutorial"
+title: " Computerized Adaptive Testing (CAT): a Tutorial using R"
 author: "Dr. Federico Ferrero"
 date: "August, 2024"
 output: html_document
@@ -176,11 +176,11 @@ In Computerized Adaptive Testing (CAT), the test adjusts to the test taker's abi
 
 Summary: CAT uses each response to select the next item, adapting in real-time to provide a precise measure of the test taker’s ability by choosing questions that best match their performance level.
 
-## Visualization ##
-
+## Visualization with ggplot2 ##
+Some of these conclusions can be addressed through visualizations using the ggplot2 library. One option is to plot the estimated theta against the number test items.
 ```{r}
 
-# Visualization
+# Load the ggplot2 library
 library(ggplot2)
 
 # Plot the Estimated Theta over the Test Items
@@ -191,10 +191,17 @@ df_theta <- data.frame(
 ggplot(df_theta, aes(x = Item, y = Theta)) +
   geom_line() +
   geom_point() +
+  geom_text(aes(label = round(Theta, 3)), vjust = -0.5, size = 2.5) +  # Add labels for Theta values
   labs(title = "Estimated Theta Over the Test Items",
        x = "Number of Items",
        y = "Estimated Theta")
+```
 
+As seen in the chart, the ability estimates are continuously refined with each item until the test reaches 20 items.
+
+Now, if we analyze the standard error in relation to the number of items presented, we observe a clear downward trend, with the standard error decreasing to 0.443 by the end of the test.
+
+```{r}
 # Plot the Standard Error over the Test Items
 df_se <- data.frame(
   Item = 1:length(se_history),
@@ -203,10 +210,15 @@ df_se <- data.frame(
 ggplot(df_se, aes(x = Item, y = SE)) +
   geom_line() +
   geom_point() +
+  geom_text(aes(label = round(SE, 3)), vjust = -0.5, size = 2.5) +  # Add labels for SE values
   labs(title = "Standard Error Over the Test Items",
        x = "Number of Items",
        y = "Standard Error")
+```
 
+Finally, this piece of code visualizes the Item Characteristic Curves (ICCs) to compare the behavior of different items using the results from our simulated example.
+
+```{r}
 # Item Characteristic Curves (ICCs)
 plotICC <- function(item_params) {
   theta_vals <- seq(-3, 3, by = 0.1)
